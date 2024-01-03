@@ -1,0 +1,76 @@
+steps:
+
+{# BUILDING #}
+
+  {% if prebuild %}
+    - id: prebuild hook
+      entrypoint: /bin/bash
+      script: |
+        {{ prebuild }}
+  {% endif %}
+
+  {% if buildpacks %}
+    - name: gcr.io/k8s-skaffold/pack
+      entrypoint: pack
+      args:
+        - build
+        - --builder=gcr.io/buildpacks/builder:v1
+        - $_IMAGE_NAME
+  {% else %}
+    - name: gcr.io/cloud-builders/docker
+      args: 
+         - build
+         - '--no-cache'
+         - -t
+         - $_IMAGE_NAME
+  {% endif %}
+
+  
+  {% if postbuild %}
+    - id: postbuild hook
+      entrypoint: /bin/bash
+      script: |
+        {{ postbuild }}
+  {% endif %}
+
+{# PUSH #}
+
+    - name: gcr.io/cloud-builders/docker
+      args: 
+        - push
+        - $_IMAGE_NAME
+
+{# CREATE #}
+
+  {% if precreate %}
+    - id: precreate hook
+      entrypoint: /bin/bash
+      script: |
+        {{ precreate }}
+  {% endif %}
+
+    - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+      entrypoint: gcloud
+      args:
+      - run
+      - update
+      - $_SERVICE_NAME
+
+
+  {% if postcreate %}
+    - id: postcreate hook
+      entrypoint: /bin/bash
+      script: |
+        {{ postcreate }}
+  {% endif %}
+
+
+{# GENERAL CONFGS #}
+
+options: 
+    dynamic_substituions: true
+    logging: CLOUD_LOGGING_ONLY
+
+substitutions: 
+    - _IMAGE_NAME: us-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}
+    - _SERVICE_NAME: my-service
