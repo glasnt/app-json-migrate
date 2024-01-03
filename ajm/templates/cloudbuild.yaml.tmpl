@@ -1,6 +1,6 @@
 steps:
 
-{# BUILDING #}
+# BUILD
 
   {% if prebuild %}
     - id: prebuild hook
@@ -10,14 +10,16 @@ steps:
   {% endif %}
 
   {% if buildpacks %}
-    - name: gcr.io/k8s-skaffold/pack
+    - id: build with buildpacks
+      name: gcr.io/k8s-skaffold/pack
       entrypoint: pack
       args:
         - build
         - --builder=gcr.io/buildpacks/builder:v1
         - $_IMAGE_NAME
   {% else %}
-    - name: gcr.io/cloud-builders/docker
+    - id: build with docker
+      name: gcr.io/cloud-builders/docker
       args: 
          - build
          - '--no-cache'
@@ -35,7 +37,8 @@ steps:
 
 {# PUSH #}
 
-    - name: gcr.io/cloud-builders/docker
+    - id: push image
+      name: gcr.io/cloud-builders/docker
       args: 
         - push
         - $_IMAGE_NAME
@@ -49,12 +52,14 @@ steps:
         {{ precreate }}
   {% endif %}
 
-    - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    - id: update service
+      name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
       entrypoint: gcloud
       args:
       - run
       - update
       - $_SERVICE_NAME
+      {{options.authentication}}
 
 
   {% if postcreate %}
