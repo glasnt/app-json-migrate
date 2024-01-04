@@ -105,9 +105,14 @@ def parse_appjson(json_fn):
     if "build" in data.keys(): 
         if "skip" in data["build"].keys() and data["build"]["skip"] is True: 
             settings["skip_build"] = True
-        if "buildpacks" in data["build"].keys() and "builder" in data["build"]["buildpacks"].keys(): 
+        if "buildpacks" in data["build"].keys():
             settings["buildpacks"] = True
-            settings["buildpacks_builder"] = data["build"]["buildpacks"]["builder"] 
+
+            if "builder" in data["build"]["buildpacks"].keys(): 
+                settings["buildpacks_builder"] = data["build"]["buildpacks"]["builder"] 
+            
+            if "buildpacks_builder" not in settings.keys(): 
+                settings["buildpacks_builder"] = "gcr.io/buildpacks/builder:v1"
 
     # Parse options
     options = {}
@@ -117,7 +122,6 @@ def parse_appjson(json_fn):
     if "authentication" not in options.keys():
         options = {"authentication": "--allow-unauthenticated"}
     settings["options"] = "\n      - ".join(options.values())
-
 
     # Parse hooks
     if "hooks" in data.keys():

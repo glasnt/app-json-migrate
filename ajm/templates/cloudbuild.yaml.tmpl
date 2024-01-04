@@ -15,7 +15,7 @@ steps:
       entrypoint: pack
       args:
         - build
-        - --builder={{buildpacks_builder or "gcr.io/buildpacks/builder:v1"}}
+        - --builder={{buildpacks_builder}}
         - $_IMAGE_NAME
   {% else %}
     - id: build with docker
@@ -51,8 +51,9 @@ steps:
       entrypoint: gcloud
       args:
         - run
-        - update
+        - deploy
         - $_SERVICE_NAME
+        - --image=$_IMAGE_NAME
         - --region=$_REGION
         - {{options}}
         {{service_envs}}
