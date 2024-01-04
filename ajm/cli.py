@@ -6,10 +6,6 @@ import click
 @click.argument("json_file", type=click.Path(exists=True))
 def cli(json_file):
     json_fn = click.format_filename(json_file)
-    click.echo(f"Processing {json_fn}")
-
-    click.echo(open(json_fn).read())
-
     settings = parse_appjson(json_fn)
     content = generate_cloudbuildyaml(settings)
     print(content)

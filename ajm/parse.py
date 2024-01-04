@@ -99,7 +99,7 @@ def parse_appjson(json_fn):
     # Parse env 
     if "env" in data.keys(): 
         extra_substitutions, settings["service_envs"], settings["service_secrets"],  = _parse_env(data["env"])
-    settings["extra_substitutions"] = "\n".join(extra_substitutions)
+        settings["extra_substitutions"] = "\n".join(extra_substitutions)
 
     # Parse builder
     if "build" in data.keys(): 
