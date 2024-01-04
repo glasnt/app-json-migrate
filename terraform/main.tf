@@ -18,6 +18,9 @@ module "project_services" {
   ]
 }
 
+variable "local_filename" { 
+  default = "cloudbuild.yaml"
+}
 
 variable "region" {
   default = "us-central1"
@@ -93,12 +96,111 @@ resource "google_cloudbuild_trigger" "default" {
     }
   }
 
-  #filename = "cloudbuild.yaml"
+  # Borrowed from memes/terraform-google-cloudbuild
+  #https://github.com/memes/terraform-google-cloudbuild/pull/62/files#diff-dc46acf24afd63ef8c556b77c126ccc6e578bc87e3aa09a931f33d9bf2532fbb
 
-  build {
-    step {
-      name = "ubuntu"
-      args = ["echo", "hello there"]
+  dynamic "build" {
+    for_each = var.local_filename != null ? [yamldecode(file(var.local_filename))] : []
+
+    content {
+      dynamic "step" {
+        for_each = try(build.value.steps, [])
+
+        content {
+          id               = try(step.value.id, null)
+          name             = try(step.value.name, null)
+          script           = try(step.value.script, null)
+          entrypoint       = try(step.value.entrypoint, null)
+          args             = try(step.value.args, [])
+          env              = try(step.value.env, [])
+          dir              = try(step.value.dir, null)
+          secret_env       = try(step.value.secretEnv, [])
+          timeout          = try(step.value.timeout, null)
+          allow_failure    = try(step.value.allow_failure, null)
+          allow_exit_codes = try(step.value.allow_exit_codes, null)
+          wait_for         = try(step.value.wait_for, null)
+          dynamic "volumes" {
+            for_each = try(step.value.volumes, [])
+
+            content {
+              name = try(volumes.value.name, null)
+              path = try(volumes.value.path, null)
+            }
+          }
+        }
+      }
+
+      dynamic "artifacts" {
+        for_each = try([build.value.artifacts], [])
+
+        content {
+          images = try(artifacts.value.images, [])
+          objects {
+            location = try(artifacts.value.location, null)
+            paths    = try(artifacts.value.paths, null)
+            timing   = try(artifacts.value.timing, null)
+          }
+        }
+      }
+
+      dynamic "secret" {
+        for_each = try([build.value.secret], [])
+
+        content {
+          kms_key_name = try(secret.value.kmsKeyName, null)
+          secret_env   = try(secret.value.secretEnv, {})
+        }
+      }
+
+      dynamic "available_secrets" {
+        for_each = try([build.value.availableSecrets], [])
+
+        content {
+          dynamic "secret_manager" {
+            for_each = try(available_secrets.value.secretManager, [])
+
+            content {
+              version_name = try(secret_manager.value.versionName, null)
+              env          = try(secret_manager.value.env, null)
+            }
+          }
+        }
+      }
+
+      dynamic "options" {
+        for_each = try([build.value.options], [])
+
+        content {
+          source_provenance_hash  = try(options.value.sourceProvenanceHash, null)
+          requested_verify_option = try(options.value.requestedVerifyOption, null)
+          machine_type            = try(options.value.machineType, null)
+          disk_size_gb            = try(options.value.diskSizeGb, null)
+          substitution_option     = try(options.value.substitutionOption, null)
+          dynamic_substitutions   = try(options.value.dynamicSubstitutions, null)
+          log_streaming_option    = try(options.value.logStreamingOption, null)
+          worker_pool             = try(options.value.pool, null)
+          logging                 = try(options.value.logging, null)
+          env                     = try(options.value.env, null)
+          secret_env              = try(options.value.secretEnv, [])
+
+          dynamic "volumes" {
+            for_each = try(options.value.volumes, [])
+
+            content {
+              name = try(volumes.value.name, null)
+              path = try(volumes.value.path, null)
+            }
+          }  
+        }
+      }
+
+      tags            = try(build.value.tags, [])
+      images          = try(build.value.images, [])
+      substitutions   = try(build.value.substitutions, {})
+      queue_ttl       = try(build.value.queueTtl, null)
+      logs_bucket     = try(build.value.logsBucket, null)
+      timeout         = try(build.value.timeout, "600s")
     }
   }
+
 }
