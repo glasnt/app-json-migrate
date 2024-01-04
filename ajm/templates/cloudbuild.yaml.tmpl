@@ -1,39 +1,36 @@
+{% import '_macros.yaml' as macro %}
+
 steps:
 
-# BUILD
+{# BUILD #}
 
-  {% if prebuild %}
-    - id: prebuild hook
-      entrypoint: /bin/bash
-      script: |
-        {{ prebuild }}
-  {% endif %}
+  {%- if prebuild %}
+    {{ macro.hook("prebuild", prebuild) }}
+  {% endif -%}
 
+  {% if not skip_build %}
   {% if buildpacks %}
     - id: build with buildpacks
       name: gcr.io/k8s-skaffold/pack
       entrypoint: pack
       args:
         - build
-        - --builder=gcr.io/buildpacks/builder:v1
+        - --builder={{buildpacks_builder or "gcr.io/buildpacks/builder:v1"}}
         - $_IMAGE_NAME
   {% else %}
     - id: build with docker
       name: gcr.io/cloud-builders/docker
       args: 
-         - build
-         - '--no-cache'
-         - -t
-         - $_IMAGE_NAME
+        - build
+        - '--no-cache'
+        - -t
+        - $_IMAGE_NAME
+  {% endif %}
   {% endif %}
 
-  
-  {% if postbuild %}
-    - id: postbuild hook
-      entrypoint: /bin/bash
-      script: |
-        {{ postbuild }}
-  {% endif %}
+  {%- if postbuild %}
+    {{ macro.hook("postbuild", postbuild) }}
+  {% endif -%}
 
 {# PUSH #}
 
@@ -46,27 +43,24 @@ steps:
 {# CREATE #}
 
   {% if precreate %}
-    - id: precreate hook
-      entrypoint: /bin/bash
-      script: |
-        {{ precreate }}
+    {{ macro.hook("precreate", precreate) }}
   {% endif %}
 
     - id: update service
       name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
       entrypoint: gcloud
       args:
-      - run
-      - update
-      - $_SERVICE_NAME
-      {{options.authentication}}
+        - run
+        - update
+        - $_SERVICE_NAME
+        - {{options}}
+        {{service_envs}}
+        {{service_secrets}}
 
 
   {% if postcreate %}
-    - id: postcreate hook
-      entrypoint: /bin/bash
-      script: |
-        {{ postcreate }}
+    {{ macro.hook("postcreate", postcreate) }}
+    {# TODO SERVICE_URL #}
   {% endif %}
 
 
@@ -75,7 +69,9 @@ steps:
 options: 
     dynamic_substituions: true
     logging: CLOUD_LOGGING_ONLY
-
+ 
 substitutions: 
     - _IMAGE_NAME: us-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}
-    - _SERVICE_NAME: my-service
+    - _SERVICE_NAME: {{service_name}}
+    - _REGION: us-central1
+{{extra_substitutions}}

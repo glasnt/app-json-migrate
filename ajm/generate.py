@@ -7,7 +7,12 @@ template = environment.get_template("cloudbuild.yaml.tmpl")
 
 
 def generate_cloudbuildyaml(settings):
-    print(settings)
     content = template.render(**settings)
-    validate = yaml.safe_load(content)
-    return yaml.dump(validate, sort_keys=False)
+
+    # pyyaml loses comments https://github.com/yaml/pyyaml/issues/90
+    # more correct validation would be this method, but we lose fidelity. 
+    #validate = yaml.safe_load(content)
+    #return yaml.dump(validate, sort_keys=False)
+
+    validate = "\n".join(item for item in content.split('\n') if item)
+    return validate

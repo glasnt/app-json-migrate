@@ -1,0 +1,11 @@
+{% macro hook(name, content) -%}
+    - id: {{name}} hook
+      entrypoint: /bin/bash
+      env: 
+        - GOOGLE_CLOUD_PROJECT=${PROJECT_ID}
+        - GOOGLE_CLOUD_REGION=${_REGION}
+        - K_SERVICE=${_SERVICE_NAME}
+        - IMAGE_URL=${_IMAGE_NAME}
+
+      script: "{{ content }}"
+{% endmacro %}
