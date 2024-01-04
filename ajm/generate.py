@@ -7,6 +7,8 @@ template = environment.get_template("cloudbuild.yaml.tmpl")
 
 
 def generate_cloudbuildyaml(settings):
+    settings["region"] = "us-central1" # TODO: make dynamic. 
+
     content = template.render(**settings)
 
     # pyyaml loses comments https://github.com/yaml/pyyaml/issues/90

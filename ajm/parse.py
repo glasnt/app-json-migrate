@@ -61,7 +61,7 @@ def _parse_env(env):
 
         else: 
         
-            substitution = f"    - _{key}: "
+            substitution = f"    _{key}: "
             if "value" in env[key].keys(): 
                 substitution += '"' + env[key]["value"] + '"'
             elif "generator" in  env[key].keys() and env[key]["generator"] == "secret":
