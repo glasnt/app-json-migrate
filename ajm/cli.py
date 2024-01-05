@@ -1,6 +1,6 @@
 from ajm.parse import parse_appjson
 from ajm.generate import generate_cloudbuildyaml
-from ajm.github import parse_repo
+from ajm.repo import parse_repo
 import click
 
 @click.command()

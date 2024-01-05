@@ -39,7 +39,6 @@ def _parse_env(env):
     """
     { "TITLE": { "description": "title for your site" }}
 
-
     - id: update service
     args:
         - update
@@ -88,7 +87,7 @@ def _fix_service_name(service_name):
     service_name = service_name[:63].lower().replace("_", "-")
 
     if service_name[0] == "-": 
-        service_name = f"srv-{service_name}"
+        service_name = f"srv{service_name}"
     if service_name[-1] == "-": 
         service_name = service_name[:-1]
 

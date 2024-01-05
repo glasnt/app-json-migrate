@@ -1,10 +1,10 @@
-from github import Github, UnknownObjectException, GithubException
-import os
 import json
 from urllib.parse import urlparse
 
+#from github import Github, GithubException, UnknownObjectException
+import github
 
-g = Github()
+g = github.Github()
 
 
 def _parse_url(github_url):
@@ -24,19 +24,11 @@ def _parse_url(github_url):
     return repo, branch, directory
 
 
-def object_exists(repo, branch, object_path):
-    try:
-        repo.get_contents(object_path, branch)
-        return True
-    except (UnknownObjectException, GithubException):
-        return False
-
-
 def _get_file(repo, branch, object_path):
     try:
         content = repo.get_contents(object_path, branch)
         return content.decoded_content.decode()
-    except (UnknownObjectException, GithubException):
+    except (github.UnknownObjectException, github.GithubException):
         return False
 
 
