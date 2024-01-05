@@ -1,6 +1,6 @@
 import pytest
 
-from parse import _fix_service_name
+from parse import _fix_service_name, _parse_env
 
 
 @pytest.mark.parametrize(
