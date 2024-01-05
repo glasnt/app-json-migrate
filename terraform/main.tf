@@ -7,7 +7,8 @@ module "project_services" {
   version                     = "14.4.0"
   disable_services_on_destroy = false
 
-  project_id                  = data.google_project.project.project_id
+  project_id                  = data.google_project.default.project_id
+ 
   activate_apis = [
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
@@ -41,7 +42,7 @@ variable "github_token" {
 }
 
 
-data "google_project" "project" {}
+data "google_project" "default" {}
 
 // Create a secret containing the personal access token and grant permissions to the Service Agent
 resource "google_secret_manager_secret" "default" {
@@ -62,7 +63,7 @@ resource "google_secret_manager_secret_iam_member" "default" {
   secret_id = google_secret_manager_secret.default.id
 
   role   = "roles/secretmanager.secretAccessor"
-  member = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+  member = "serviceAccount:service-${data.google_project.default.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
 
 resource "google_cloudbuildv2_connection" "default" {
