@@ -1,6 +1,3 @@
-import yaml
-
-
 from jinja2 import Environment, FileSystemLoader
 environment = Environment(loader=FileSystemLoader("ajm/templates/"))
 template = environment.get_template("cloudbuild.yaml.tmpl")
@@ -16,5 +13,5 @@ def generate_cloudbuildyaml(settings):
     #validate = yaml.safe_load(content)
     #return yaml.dump(validate, sort_keys=False)
 
-    validate = "\n".join(item for item in content.split('\n') if item)
+    validate = "\n".join(item for item in content.split('\n') if item.strip())
     return validate

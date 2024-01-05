@@ -1,12 +1,10 @@
 {% import '_macros.yaml' as macro %}
-
 steps:
-
 {# BUILD #}
 
-  {%- if prebuild %}
+  {% if prebuild %}
     {{ macro.hook("prebuild", prebuild) }}
-  {% endif -%}
+  {% endif %}
 
   {% if not skip_build %}
   {% if buildpacks %}
@@ -17,20 +15,22 @@ steps:
         - build
         - --builder={{buildpacks_builder}}
         - $_IMAGE_NAME
+        - -path={{context_directory}}
   {% else %}
     - id: build with docker
       name: gcr.io/cloud-builders/docker
       args: 
         - build
         - '--no-cache'
-        - -t
-        - $_IMAGE_NAME
+        - -t=${_IMAGE_NAME}
+        {{context_directory}}
+        {{dockerfile_location}}
   {% endif %}
   {% endif %}
 
-  {%- if postbuild %}
+  {% if postbuild %}
     {{ macro.hook("postbuild", postbuild) }}
-  {% endif -%}
+  {% endif %}
 
 {# PUSH #}
 
@@ -59,18 +59,13 @@ steps:
         {{service_envs}}
         {{service_secrets}}
 
-
   {% if postcreate %}
     {{ macro.hook("postcreate", postcreate) }}
     {# TODO SERVICE_URL #}
   {% endif %}
-
-
-{# GENERAL CONFGS #}
-
+ 
 options: 
     dynamicSubstitutions: true
-    #logging: CLOUD_LOGGING_ONLY
  
 substitutions: 
     _IMAGE_NAME: {{region}}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE_NAME}

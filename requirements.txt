@@ -1,4 +1,4 @@
 click
 jinja2
 pyyaml
-ruamel.yaml
+pygithub

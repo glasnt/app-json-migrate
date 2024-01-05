@@ -1,4 +1,4 @@
-import json
+from pathlib import Path
 
 
 def _parse_options(options):
@@ -85,8 +85,7 @@ def _parse_env(env):
     
 
 
-def parse_appjson(json_fn):
-    data = json.load(open(json_fn))
+def parse_appjson(data):
 
     settings = {}
     
@@ -96,10 +95,22 @@ def parse_appjson(json_fn):
     else:
         settings["service_name"] = "my-service"  # TODO: generate based on repo name.
 
+    # Added by parse_repo()
+    if "_directory" in data.keys(): 
+        if data["_directory"] == "/": 
+            settings["dockerfile_location"] = "- Dockerfile"
+        else: 
+            settings["context_directory"] = f'- -f={data["_directory"]}'
+            settings["dockerfile_location"] = f'- {Path(data["_directory"], "Dockerfile")}'
+
     # Parse env 
     if "env" in data.keys(): 
         extra_substitutions, settings["service_envs"], settings["service_secrets"],  = _parse_env(data["env"])
         settings["extra_substitutions"] = "\n".join(extra_substitutions)
+
+    # Parse Dockerfile (key added by parse_repo())
+    if "_dockerfile" in data.keys(): 
+        settings["buildpacks"] = False
 
     # Parse builder
     if "build" in data.keys(): 
