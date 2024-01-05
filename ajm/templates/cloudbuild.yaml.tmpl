@@ -15,7 +15,7 @@ steps:
         - build
         - --builder={{buildpacks_builder}}
         - $_IMAGE_NAME
-        - -path={{context_directory}}
+        - --path={{context_directory}}
   {% else %}
     - id: build with docker
       name: gcr.io/cloud-builders/docker
@@ -23,7 +23,7 @@ steps:
         - build
         - '--no-cache'
         - -t=${_IMAGE_NAME}
-        {{context_directory}}
+        {{docker_context}}
         {{dockerfile_location}}
   {% endif %}
   {% endif %}
@@ -61,7 +61,7 @@ steps:
 
   {% if postcreate %}
     {{ macro.hook("postcreate", postcreate) }}
-    {# TODO SERVICE_URL #}
+    {# TODO: add SERVICE_URL as envvar #}
   {% endif %}
  
 options: 

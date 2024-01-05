@@ -72,7 +72,7 @@ def _parse_env(env):
             if "description" in env[key].keys(): 
                 substitution += f"  # {env[key]['description']}"
 
-            _service_envs.append( key + "=${_" + key + "}") #TODO literal braces in f-strings how
+            _service_envs.append(f"{key}=${{_{key}}}")
             _extra_substitutions.append(substitution)
 
     _set_envvars, _set_secrets = "", ""
@@ -83,6 +83,16 @@ def _parse_env(env):
 
     return _extra_substitutions, _set_envvars, _set_secrets
     
+def _fix_service_name(service_name): 
+    # Based on tryFixServiceName https://github.com/GoogleCloudPlatform/cloud-run-button/blob/master/cmd/cloudshell_open/cloudrun.go#L121
+    service_name = service_name[:63].lower().replace("_", "-")
+
+    if service_name[0] == "-": 
+        service_name = f"srv-{service_name}"
+    if service_name[-1] == "-": 
+        service_name = service_name[:-1]
+
+    return service_name
 
 
 def parse_appjson(data):
@@ -93,14 +103,17 @@ def parse_appjson(data):
     if "name" in data.keys():
         settings["service_name"] = data["name"]
     else:
-        settings["service_name"] = "my-service"  # TODO: generate based on repo name.
+        settings["service_name"] = data["_service_name"]
+    
+    settings["service_name"] = _fix_service_name(settings["service_name"])
 
     # Added by parse_repo()
     if "_directory" in data.keys(): 
         if data["_directory"] == "/": 
             settings["dockerfile_location"] = "- Dockerfile"
         else: 
-            settings["context_directory"] = f'- -f={data["_directory"]}'
+            settings["context_directory"] = data["_directory"]
+            settings["docker_context"] = f'- -f={data["_directory"]}'
             settings["dockerfile_location"] = f'- {Path(data["_directory"], "Dockerfile")}'
 
     # Parse env 
@@ -109,8 +122,8 @@ def parse_appjson(data):
         settings["extra_substitutions"] = "\n".join(extra_substitutions)
 
     # Parse Dockerfile (key added by parse_repo())
-    if "_dockerfile" in data.keys(): 
-        settings["buildpacks"] = False
+    if "_dockerfile" not in data.keys():
+        settings["buildpacks"] = True
 
     # Parse builder
     if "build" in data.keys(): 
@@ -121,9 +134,10 @@ def parse_appjson(data):
 
             if "builder" in data["build"]["buildpacks"].keys(): 
                 settings["buildpacks_builder"] = data["build"]["buildpacks"]["builder"] 
-            
-            if "buildpacks_builder" not in settings.keys(): 
-                settings["buildpacks_builder"] = "gcr.io/buildpacks/builder:v1"
+    
+    # Provide default builder if not already provided.
+    if settings["buildpacks"] and "buildpacks_builder" not in settings.keys(): 
+        settings["buildpacks_builder"] = "gcr.io/buildpacks/builder:v1"
 
     # Parse options
     options = {}

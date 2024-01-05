@@ -6,7 +6,7 @@ This is a proof of concept application that migrates a Cloud Run Button `app.jso
 
  * `env`: 
     - Any declared `env` values are populated as substitution variables, and assigned to the Cloud Run service as environment variables.
-    - `descriptions` are added as comments (TODO but lost in validation)
+    - `descriptions` are added as comments
     - `order` is ignored. 
 
 
