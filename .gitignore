@@ -8,3 +8,5 @@ __pycache__
 terraform.tfstate*
 
 glasnt.tfvars
+_cloudbuild.yaml
+_config.tfvars
