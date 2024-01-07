@@ -1,2 +1,10 @@
+# python
 venv
 __pycache__
+
+# terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate*
+
+glasnt.tfvars
