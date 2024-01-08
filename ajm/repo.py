@@ -62,7 +62,7 @@ def parse_repo(github_url):
     data["_directory"] = directory
     data["_repo"] = repo.full_name
     data["_branch"] = branch
-    data["_service_name"] = repo.full_name.split("/")[-1]
+    data["_service_name"] = f'{repo.full_name.split("/")[-1]}--{data["_branch"]}--{data["_directory"]}'
 
     debug_text(f"Dockerfile: {bool(dockerfile)}, Pom.xml: {bool(pomxml)}, Service Name: { data['_service_name']}")
 

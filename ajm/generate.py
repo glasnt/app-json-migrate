@@ -29,7 +29,7 @@ def generate_tfvars(config):
     tfvars = dedent(
         f"""
         github_repo = "{config['_repo']}"
-        git_default_branch = "{config['_branch']}"
+        github_default_branch = "{config['_branch']}"
         region = "{config['_region']}"
         cloudbuild_file = "{CLOUDBUILD_CONFIG}"
 

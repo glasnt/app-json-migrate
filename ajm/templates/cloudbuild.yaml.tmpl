@@ -28,11 +28,12 @@ steps:
   {% elif build_type == "jib" %}
     - id: build with jib
       name: maven:eclipse-temurin
+      dir: {{context_directory}}
       entrypoint: mvn
       args: 
         - compile
         - com.google.cloud.tools:jib-maven-plugin:3.2.1:build
-        - -D${_IMAGE_NAME}
+        - -Djib.to.image=${_IMAGE_NAME}
   {% endif %}
   {% endif %}
 
@@ -41,12 +42,13 @@ steps:
   {% endif %}
 
 {# PUSH #}
-
+  {% if push %}
     - id: push image
       name: gcr.io/cloud-builders/docker
       args: 
         - push
         - $_IMAGE_NAME
+  {% endif %}
 
 {# CREATE #}
 

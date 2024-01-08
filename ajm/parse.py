@@ -87,7 +87,7 @@ def _parse_env(env):
 
 def _fix_service_name(service_name):
     # Based on tryFixServiceName https://github.com/GoogleCloudPlatform/cloud-run-button/blob/master/cmd/cloudshell_open/cloudrun.go#L121
-    service_name = service_name[:63].lower().replace("_", "-")
+    service_name = service_name[:63].lower().replace("_", "-").replace("/", "-").replace("\\", "-")
 
     if service_name[0] == "-":
         service_name = f"srv{service_name}"
@@ -130,11 +130,13 @@ def parse_appjson(data):
         settings["extra_substitutions"] = "\n".join(extra_substitutions)
 
     # Parse build type by file
+    settings["push"] = True
     if "_dockerfile" in data.keys():
         settings["build_type"] = "docker"
     
     if "_pomxml" in data.keys(): 
         settings["build_type"] = "jib"
+        settings["push"] = False  # jib automatically pushes, don't need Docker. 
 
     # Parse build if given
     if "build" in data.keys():
@@ -148,7 +150,7 @@ def parse_appjson(data):
 
     # Default to buildpacks if no expected files found
     if "build_type" not in settings.keys(): 
-        settings["build_type"] = "buildpacks"    
+        settings["build_type"] = "buildpacks"
 
     # Provide default builder if not already provided.
     if "build_type" in settings.keys() and settings["build_type"] == "buildpacks" and "buildpacks_builder" not in settings.keys():

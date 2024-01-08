@@ -2,6 +2,10 @@
 
 This is a proof of concept application that migrates a Cloud Run Button `app.json` into a `cloudbuild.yaml`. 
 
+Requires: 
+
+* [Installing Cloud Build application in GitHub](https://cloud.google.com/build/docs/automating-builds/github/connect-repo-github?generation=2nd-gen)
+
 Usage: 
 
 * `generate`: generates the file, and notes any things to edit
