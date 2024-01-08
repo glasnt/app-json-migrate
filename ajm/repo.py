@@ -44,8 +44,7 @@ def parse_repo(github_url):
 
     appjson = _get_file(repo, branch, Path(directory) / "app.json")
     dockerfile = _get_file(repo, branch, Path(directory) / "Dockerfile")
-
-    # TODO: jib/pom.xml config
+    pomxml = _get_file(repo, branch, Path(directory) / "pom.xml" )
 
     if appjson:
         data = json.loads(appjson)
@@ -55,12 +54,16 @@ def parse_repo(github_url):
     # Give parser additional context
     if dockerfile:
         data["_dockerfile"] = True
+    
+    if pomxml: 
+        data["_pomxml"] = True
+
 
     data["_directory"] = directory
     data["_repo"] = repo.full_name
     data["_branch"] = branch
     data["_service_name"] = repo.full_name.split("/")[-1]
 
-    debug_text(f"Dockerfile: {bool(dockerfile)}, Service Name: { data['_service_name']}")
+    debug_text(f"Dockerfile: {bool(dockerfile)}, Pom.xml: {bool(pomxml)}, Service Name: { data['_service_name']}")
 
     return data

@@ -7,7 +7,7 @@ steps:
   {% endif %}
 
   {% if not skip_build %}
-  {% if buildpacks %}
+  {% if build_type == "buildpacks" %}
     - id: build with buildpacks
       name: gcr.io/k8s-skaffold/pack
       entrypoint: pack
@@ -16,7 +16,7 @@ steps:
         - --builder={{buildpacks_builder}}
         - $_IMAGE_NAME
         - --path={{context_directory}}
-  {% else %}
+  {% elif build_type == "docker" %}
     - id: build with docker
       name: gcr.io/cloud-builders/docker
       args: 
@@ -25,6 +25,14 @@ steps:
         - -t=${_IMAGE_NAME}
         {{docker_context}}
         {{dockerfile_location}}
+  {% elif build_type == "jib" %}
+    - id: build with jib
+      name: maven:eclipse-temurin
+      entrypoint: mvn
+      args: 
+        - compile
+        - com.google.cloud.tools:jib-maven-plugin:3.2.1:build
+        - -D${_IMAGE_NAME}
   {% endif %}
   {% endif %}
 

@@ -129,22 +129,29 @@ def parse_appjson(data):
         ) = _parse_env(data["env"])
         settings["extra_substitutions"] = "\n".join(extra_substitutions)
 
-    # Parse Dockerfile (key added by parse_repo())
-    if "_dockerfile" not in data.keys():
-        settings["buildpacks"] = True
+    # Parse build type by file
+    if "_dockerfile" in data.keys():
+        settings["build_type"] = "docker"
+    
+    if "_pomxml" in data.keys(): 
+        settings["build_type"] = "jib"
 
-    # Parse builder
+    # Parse build if given
     if "build" in data.keys():
         if "skip" in data["build"].keys() and data["build"]["skip"] is True:
             settings["skip_build"] = True
         if "buildpacks" in data["build"].keys():
-            settings["buildpacks"] = True
+            settings["build_type"] = "buildpacks"
 
             if "builder" in data["build"]["buildpacks"].keys():
                 settings["buildpacks_builder"] = data["build"]["buildpacks"]["builder"]
 
+    # Default to buildpacks if no expected files found
+    if "build_type" not in settings.keys(): 
+        settings["build_type"] = "buildpacks"    
+
     # Provide default builder if not already provided.
-    if "buildpacks" in settings.keys() and "buildpacks_builder" not in settings.keys():
+    if "build_type" in settings.keys() and settings["build_type"] == "buildpacks" and "buildpacks_builder" not in settings.keys():
         settings["buildpacks_builder"] = "gcr.io/buildpacks/builder:v1"
 
     # Parse options
