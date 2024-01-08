@@ -24,6 +24,5 @@ Usage:
     - Generating the value into the cloudbuild.yaml would result in plaintext passwords. 
     - Could create a secret and generate a value there, but would require Cloud Build to have Secret Manager permissions. 
 
-   * `env.ORDERED_ENV`
-     * Cloud Build offers no ability to prompt, so ordered prompts can't be supported. 
-   * 
+ * `env.ORDERED_ENV`
+    - Cloud Build offers no ability to prompt, so ordered prompts can't be supported. 
