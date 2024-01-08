@@ -23,5 +23,5 @@ variable "github_token" {
 
 variable "github_default_branch" { 
   default = "main"
-  description = "branch of repo to attach to" # TODO: use branch from ajm
+  description = "branch of repo to attach to"
 }
