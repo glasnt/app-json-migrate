@@ -7,7 +7,7 @@ output "trigger_run" {
   To run the trigger: 
 
     
-    gcloud builds triggers run ${google_cloudbuild_trigger.default.name} --region ${var.region} --branch ${var.github_default_branch}"  --format "value(metadata.build.logUrl)"
+    gcloud builds triggers run ${google_cloudbuild_trigger.default.name} --region ${var.region} --branch ${var.github_default_branch}  --format "value(metadata.build.logUrl)"
 
   Check the output log URL for deployment progress.
   EOF
