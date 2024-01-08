@@ -19,14 +19,15 @@ def cli():
 def generate(github_url, region):
     config = parse_repo(github_url)
     settings = parse_appjson(config)
-    generate_cloudbuildyaml(settings)
+    generate_cloudbuildyaml(settings, region=region)
     generate_tfvars(config["_repo"], region)
-    click.echo("Address warnings, then run apply: ")
+    click.echo("Address any warnings, then run apply: ")
     click.echo("python main.py apply")
     
 
 @cli.command(name="apply")
 def apply():
     # TODO: get REGION from tfvars
-    print("terraform import google_artifact_registry_repository.default us-central1/cloud-run-source-deploy")
+    print("terraform init")
+    print(f"terraform import -var-file={TFVARS_CONFIG} google_artifact_registry_repository.default us-central1/cloud-run-source-deploy")
     print(f"terraform apply -var-file={TFVARS_CONFIG}")

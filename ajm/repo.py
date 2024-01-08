@@ -1,8 +1,10 @@
 import json
-from urllib.parse import urlparse
 import os
-import github
+from .helpers import debug_text
+from urllib.parse import urlparse
+from pathlib import Path
 
+import github
 
 if "GITHUB_TOKEN" in os.environ.keys(): 
     g = github.Github(auth=github.Auth.Token(os.environ["GITHUB_TOKEN"]))
@@ -24,12 +26,14 @@ def _parse_url(github_url):
         branch = repo.default_branch
         directory = "/"
 
+    debug_text(f"repo: {repo.full_name}, branch: {branch}, directory: {directory}")
+
     return repo, branch, directory
 
 
 def _get_file(repo, branch, object_path):
     try:
-        content = repo.get_contents(object_path, branch)
+        content = repo.get_contents(str(object_path), branch)
         return content.decoded_content.decode()
     except (github.UnknownObjectException, github.GithubException):
         return False
@@ -38,8 +42,8 @@ def _get_file(repo, branch, object_path):
 def parse_repo(github_url):
     repo, branch, directory = _parse_url(github_url)
 
-    appjson = _get_file(repo, branch, directory + "app.json")
-    dockerfile = _get_file(repo, branch, directory + "Dockerfile")
+    appjson = _get_file(repo, branch, Path(directory) / "app.json")
+    dockerfile = _get_file(repo, branch, Path(directory) / "Dockerfile")
 
     # TODO: jib/pom.xml config
 
@@ -55,5 +59,7 @@ def parse_repo(github_url):
     data["_directory"] = directory
     data["_repo"] = repo.full_name
     data["_service_name"] = repo.full_name.split("/")[-1]
+
+    debug_text(f"Dockerfile: {bool(dockerfile)}, Service Name: { data['_service_name']}")
 
     return data

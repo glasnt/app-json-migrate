@@ -8,3 +8,6 @@ def warning_text(text):
 
 def success_text(text):
     click.echo(f"✅ {text}\n") 
+
+def debug_text(text): 
+    click.echo(f"🪲 - {text}")

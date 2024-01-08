@@ -15,9 +15,9 @@ def _parse_options(options):
         "allow-unauthenticated" in options.keys()
         and options["allow-unauthenticated"] is False
     ):
-        _settings["authentication"] = "--no-allow-authenticated"
+        _settings["authentication"] = "--no-allow-unauthenticated"
     else:
-        _settings["authentication"] = "--allow-authenticated"
+        _settings["authentication"] = "--allow-unauthenticated"
 
     if "http2" in options.keys() and options["http2"] is True:
         _settings["http2"] = "--use-http2"
@@ -114,10 +114,10 @@ def parse_appjson(data):
             settings["dockerfile_location"] = "- Dockerfile"
         else:
             settings["context_directory"] = data["_directory"]
-            settings["docker_context"] = f'- -f={data["_directory"]}'
+            settings["docker_context"] = f'- {data["_directory"]}'
             settings[
                 "dockerfile_location"
-            ] = f'- {Path(data["_directory"], "Dockerfile")}'
+            ] = f'- -f={Path(data["_directory"], "Dockerfile")}'
 
     # Parse env
     if "env" in data.keys():
@@ -143,7 +143,7 @@ def parse_appjson(data):
                 settings["buildpacks_builder"] = data["build"]["buildpacks"]["builder"]
 
     # Provide default builder if not already provided.
-    if settings["buildpacks"] and "buildpacks_builder" not in settings.keys():
+    if "buildpacks" in settings.keys() and "buildpacks_builder" not in settings.keys():
         settings["buildpacks_builder"] = "gcr.io/buildpacks/builder:v1"
 
     # Parse options
@@ -153,7 +153,7 @@ def parse_appjson(data):
 
     if "authentication" not in options.keys():
         options = {"authentication": "--allow-unauthenticated"}
-    settings["options"] = "\n      - ".join(options.values())
+    settings["options"] = "\n        - ".join(options.values()) #TODO: resilient space padding
 
     # Parse hooks
     if "hooks" in data.keys():

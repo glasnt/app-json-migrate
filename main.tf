@@ -2,6 +2,11 @@
 
 data "google_project" "default" {}
 
+resource "random_string" "random" {
+  length           = 8
+  special          = false
+}
+
 ////////////////////////////////////////////////////////////////////
 // APIs
 
@@ -54,7 +59,7 @@ resource "google_project_iam_member" "cloud_build_roles" {
 
 // Create a secret containing the personal access token and grant permissions to the Service Agent
 resource "google_secret_manager_secret" "default" {
-  secret_id = "github_secret_token"
+  secret_id = "ajm-github-secret-token-${random_string.random.result}"
 
   replication {
     auto {}
@@ -79,7 +84,7 @@ resource "google_secret_manager_secret_iam_member" "default" {
 
 resource "google_cloudbuildv2_connection" "default" {
   location = var.region
-  name     = "github_connection"
+  name     = "ajm-generated-connection-${random_string.random.result}"
 
   github_config {
     app_installation_id = var.installation_id
@@ -101,7 +106,7 @@ resource "google_cloudbuildv2_repository" "default" {
 // CLOUD BUILD TRIGGER
 
 resource "google_cloudbuild_trigger" "default" {
-  name     = replace(var.github_repo, "/", "-") # TODO: make a better reflective name
+  name     = "ajm-generated-trigger-${random_string.random.result}"
   location = "us-central1"
 
   repository_event_config {
@@ -111,8 +116,8 @@ resource "google_cloudbuild_trigger" "default" {
     }
   }
 
-  # Borrowed from memes/terraform-google-cloudbuild
-  #https://github.com/memes/terraform-google-cloudbuild/pull/62/files#diff-dc46acf24afd63ef8c556b77c126ccc6e578bc87e3aa09a931f33d9bf2532fbb
+  # Copied from memes/terraform-google-cloudbuild
+  # https://github.com/memes/terraform-google-cloudbuild/pull/62/files#diff-dc46acf24afd63ef8c556b77c126ccc6e578bc87e3aa09a931f33d9bf2532fbb
 
   dynamic "build" {
     for_each = var.cloudbuild_file != null ? [yamldecode(file(var.cloudbuild_file))] : []
