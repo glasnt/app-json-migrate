@@ -19,35 +19,40 @@ module "project_services" {
   ]
 }
 
-variable "local_filename" { 
-  default = "cloudbuild.yaml"
-}
-
-variable "region" {
-  default = "us-central1"
-}
-
-variable "installation_id" {
-  # Find from Cloud Build listing on https://github.com/settings/installations 
-  description = "ID of the github installation. https://github.com/settings/installations/INSTALLATION_ID"
-}
-
-variable "github_repo" {
-  description = "Name of your github repo"
-}
-
-variable "github_default_branch" { 
-  default = "main"
-  description = "branch of repo to attach to" # TODO: use branch from ajm
-}
-
-variable "github_token" {
-  # Generate at https://github.com/settings/tokens/new
-  description = "GitHub token with repo and read:user permissions"
-}
-
 
 data "google_project" "default" {}
+
+
+////////////////////////////////////////////////////////////////////
+// ARTIFACT REGISTRY
+
+# Setup steps that need to be done, but may already be done. 
+# Should no-op on systems that already have had a CheckboxCD deployment. 
+
+# Cloud Run Source Deploy repo
+resource "google_artifact_registry_repository" "default" {
+  location      = var.region
+  repository_id = "cloud-run-source-deploy"
+  format        = "DOCKER"
+
+  depends_on = [module.project_services]
+}
+
+# Cloud Build permissions
+resource "google_project_iam_member" "cloud_build_roles" {
+  project    = data.google_project.default.id
+  depends_on = [module.project_services]
+  for_each = toset([
+    "roles/run.admin",
+    "roles/iam.serviceAccountUser"
+  ])
+  role   = each.key
+  member = "serviceAccount:${data.google_project.default.number}@cloudbuild.gserviceaccount.com"
+}
+
+
+////////////////////////////////////////////////////////////////////
+// SECRET MANAGER
 
 // Create a secret containing the personal access token and grant permissions to the Service Agent
 resource "google_secret_manager_secret" "default" {
@@ -63,13 +68,16 @@ resource "google_secret_manager_secret_version" "default" {
   secret_data = var.github_token
 }
 
-
 resource "google_secret_manager_secret_iam_member" "default" {
   secret_id = google_secret_manager_secret.default.id
 
   role   = "roles/secretmanager.secretAccessor"
   member = "serviceAccount:service-${data.google_project.default.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
 }
+
+
+////////////////////////////////////////////////////////////////////
+// CLOUD BUILD CONECTION
 
 resource "google_cloudbuildv2_connection" "default" {
   location = var.region
@@ -84,12 +92,15 @@ resource "google_cloudbuildv2_connection" "default" {
   depends_on = [google_secret_manager_secret_iam_member.default]
 }
 
-
 resource "google_cloudbuildv2_repository" "default" {
   name              = var.github_repo
   parent_connection = google_cloudbuildv2_connection.default.id
   remote_uri        = "https://github.com/${var.github_repo}.git"
 }
+
+
+////////////////////////////////////////////////////////////////////
+// CLOUD BUILD TRIGGER
 
 resource "google_cloudbuild_trigger" "default" {
   name = replace(var.github_repo, "/", "-") # TODO: make a better reflective name
@@ -106,7 +117,7 @@ resource "google_cloudbuild_trigger" "default" {
   #https://github.com/memes/terraform-google-cloudbuild/pull/62/files#diff-dc46acf24afd63ef8c556b77c126ccc6e578bc87e3aa09a931f33d9bf2532fbb
 
   dynamic "build" {
-    for_each = var.local_filename != null ? [yamldecode(file(var.local_filename))] : []
+    for_each = var.cloudbuild_file != null ? [yamldecode(file(var.cloudbuild_file))] : []
 
     content {
       dynamic "step" {

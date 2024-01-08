@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from .helpers import warning_text
+
 
 def _parse_options(options):
     _settings = {}
@@ -63,8 +65,10 @@ def _parse_env(env):
                 substitution += '"' + env[key]["value"] + '"'
             elif "generator" in env[key].keys() and env[key]["generator"] == "secret":
                 substitution += '""  # GENERATOR'
+                warning_text("Value {key} needs secret TODO")
             else:
                 substitution += '""'
+                warning_text("Value {key} needs default TODO")
 
             if "description" in env[key].keys():
                 substitution += f"  # {env[key]['description']}"
