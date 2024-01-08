@@ -1,14 +1,17 @@
 #https://cloud.google.com/build/docs/automating-builds/github/connect-repo-github#connecting_a_github_host_programmatically
 
+data "google_project" "default" {}
 
-# Google Cloud Services to enable
+////////////////////////////////////////////////////////////////////
+// APIs
+
 module "project_services" {
   source                      = "terraform-google-modules/project-factory/google//modules/project_services"
   version                     = "14.4.0"
   disable_services_on_destroy = false
 
-  project_id                  = data.google_project.default.project_id
- 
+  project_id = data.google_project.default.project_id
+
   activate_apis = [
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
@@ -18,10 +21,6 @@ module "project_services" {
     "secretmanager.googleapis.com",
   ]
 }
-
-
-data "google_project" "default" {}
-
 
 ////////////////////////////////////////////////////////////////////
 // ARTIFACT REGISTRY
@@ -49,7 +48,6 @@ resource "google_project_iam_member" "cloud_build_roles" {
   role   = each.key
   member = "serviceAccount:${data.google_project.default.number}@cloudbuild.gserviceaccount.com"
 }
-
 
 ////////////////////////////////////////////////////////////////////
 // SECRET MANAGER
@@ -103,7 +101,7 @@ resource "google_cloudbuildv2_repository" "default" {
 // CLOUD BUILD TRIGGER
 
 resource "google_cloudbuild_trigger" "default" {
-  name = replace(var.github_repo, "/", "-") # TODO: make a better reflective name
+  name     = replace(var.github_repo, "/", "-") # TODO: make a better reflective name
   location = "us-central1"
 
   repository_event_config {
@@ -207,16 +205,16 @@ resource "google_cloudbuild_trigger" "default" {
               name = try(volumes.value.name, null)
               path = try(volumes.value.path, null)
             }
-          }  
+          }
         }
       }
 
-      tags            = try(build.value.tags, [])
-      images          = try(build.value.images, [])
-      substitutions   = try(build.value.substitutions, {})
-      queue_ttl       = try(build.value.queueTtl, null)
-      logs_bucket     = try(build.value.logsBucket, null)
-      timeout         = try(build.value.timeout, "600s")
+      tags          = try(build.value.tags, [])
+      images        = try(build.value.images, [])
+      substitutions = try(build.value.substitutions, {})
+      queue_ttl     = try(build.value.queueTtl, null)
+      logs_bucket   = try(build.value.logsBucket, null)
+      timeout       = try(build.value.timeout, "600s")
     }
   }
 

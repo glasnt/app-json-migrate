@@ -27,7 +27,6 @@ def generate(github_url, region):
 
 @cli.command(name="apply")
 def apply():
-    print("Apply command")
-
-    print("terraform import ...")
-    print("terraform apply ...")
+    # TODO: get REGION from tfvars
+    print("terraform import google_artifact_registry_repository.default us-central1/cloud-run-source-deploy")
+    print(f"terraform apply -var-file={TFVARS_CONFIG}")
