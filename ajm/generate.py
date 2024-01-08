@@ -10,8 +10,7 @@ environment = Environment(loader=FileSystemLoader("ajm/templates/"))
 template = environment.get_template("cloudbuild.yaml.tmpl")
 
 
-def generate_cloudbuildyaml(settings, region):
-    settings["region"] = region
+def generate_cloudbuildyaml(settings):
     content = template.render(**settings)
 
     # pyyaml loses comments https://github.com/yaml/pyyaml/issues/90
@@ -26,11 +25,12 @@ def generate_cloudbuildyaml(settings, region):
     success_text(f"Wrote Cloud Build config to {CLOUDBUILD_CONFIG}")
 
 
-def generate_tfvars(repo, region):
+def generate_tfvars(config):
     tfvars = dedent(
         f"""
-        github_repo = "{repo}"
-        region = "{region}"
+        github_repo = "{config['_repo']}"
+        git_default_branch = "{config['_branch']}"
+        region = "{config['_region']}"
         cloudbuild_file = "{CLOUDBUILD_CONFIG}"
 
         # Generate at https://github.com/settings/tokens/new

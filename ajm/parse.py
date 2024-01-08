@@ -107,6 +107,7 @@ def parse_appjson(data):
         settings["service_name"] = data["_service_name"]
 
     settings["service_name"] = _fix_service_name(settings["service_name"])
+    settings["region"] = data["_region"]
 
     # Added by parse_repo()
     if "_directory" in data.keys():
