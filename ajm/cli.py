@@ -30,6 +30,7 @@ def generate(github_url, region):
 @cli.command(name="apply")
 def apply():
     region = tfvars(TFVARS_CONFIG, "region")
+    print("export GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)")
     print("terraform init")
     print(f"terraform import -var-file={TFVARS_CONFIG} google_artifact_registry_repository.default {region}/cloud-run-source-deploy")
     print(f"terraform apply -var-file={TFVARS_CONFIG}")
