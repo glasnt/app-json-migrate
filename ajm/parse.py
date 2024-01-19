@@ -1,6 +1,4 @@
-from pathlib import Path
-
-from .helpers import warning_text
+from ajm.helpers import warning_text
 
 
 def _parse_options(options):
@@ -111,14 +109,7 @@ def parse_appjson(data):
 
     # Added by parse_repo()
     if "_directory" in data.keys():
-        if data["_directory"] == "/":
-            settings["dockerfile_location"] = "- Dockerfile"
-        else:
-            settings["context_directory"] = data["_directory"]
-            settings["docker_context"] = f'- {data["_directory"]}'
-            settings[
-                "dockerfile_location"
-            ] = f'- -f={Path(data["_directory"], "Dockerfile")}'
+        settings["context_directory"] = data["_directory"]
 
     # Parse env
     if "env" in data.keys():

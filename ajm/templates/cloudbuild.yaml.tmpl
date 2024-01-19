@@ -3,7 +3,7 @@ steps:
 {# BUILD #}
 
   {% if prebuild %}
-    {{ macro.hook("prebuild", prebuild) }}
+    {{ macro.hook("prebuild", prebuild, context_directory) }}
   {% endif %}
 
   {% if not skip_build %}
@@ -23,8 +23,8 @@ steps:
         - build
         - '--no-cache'
         - -t=${_IMAGE_NAME}
-        {{docker_context}}
-        {{dockerfile_location}}
+        - -f={{context_directory}}/Dockerfile
+        - {{context_directory}}
   {% elif build_type == "jib" %}
     - id: build with jib
       name: maven:eclipse-temurin
@@ -38,7 +38,7 @@ steps:
   {% endif %}
 
   {% if postbuild %}
-    {{ macro.hook("postbuild", postbuild) }}
+    {{ macro.hook("postbuild", postbuild, context_directory) }}
   {% endif %}
 
 {# PUSH #}
@@ -53,7 +53,7 @@ steps:
 {# CREATE #}
 
   {% if precreate %}
-    {{ macro.hook("precreate", precreate) }}
+    {{ macro.hook("precreate", precreate, context_directory) }}
   {% endif %}
 
     - id: update service
@@ -70,7 +70,7 @@ steps:
         {{service_secrets}}
 
   {% if postcreate %}
-    {{ macro.hook("postcreate", postcreate) }}
+    {{ macro.hook("postcreate", postcreate, context_directory) }}
     {# TODO: add SERVICE_URL as envvar #}
   {% endif %}
  

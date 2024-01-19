@@ -1,11 +1,11 @@
-{% macro hook(name, content) -%}
+{% macro hook(name, content, context_directory) -%}
     - id: {{name}} hook
-      entrypoint: /bin/bash
+      name: gcr.io/cloudshell-images/cloudshell
+      dir: {{context_directory}}
       env: 
         - GOOGLE_CLOUD_PROJECT=${PROJECT_ID}
         - GOOGLE_CLOUD_REGION=${_REGION}
         - K_SERVICE=${_SERVICE_NAME}
         - IMAGE_URL=${_IMAGE_NAME}
-
       script: "{{ content }}"
 {% endmacro %}
