@@ -1,5 +1,10 @@
 import click
-import tomllib
+
+# backwards compat with <3.11
+try:
+    import tomllib
+except ModuleNotFoundError:
+    from pip._vendor import tomli as tomllib 
 
 def warning_text(text): 
     
